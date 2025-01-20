@@ -5,7 +5,7 @@ def create_dynamic_menu(chat_enabled: bool) -> ReplyKeyboardMarkup:
     
     return ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="Изменить имя")], [KeyboardButton(text="Опции")],
+            [KeyboardButton(text="Изменить имя")], [KeyboardButton(text="Опции с дневником")],
             [KeyboardButton(text=button_text)],
         ],
         resize_keyboard=True

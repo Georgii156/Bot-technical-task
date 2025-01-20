@@ -99,7 +99,7 @@ async def chat_end_handler(message: Message):
     await update_user(user_id, {"chat_enabled": False})
     await message.answer("❌ Чат выключен, буду ждать нового диалога!", reply_markup=create_dynamic_menu(False))
 
-@router.message(F.text == "Опции")
+@router.message(F.text == "Опции с дневником")
 async def show_options_handler(message: Message):
     inline_keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="Запись в дневник", callback_data="option1")],
