@@ -1,0 +1,7 @@
+aiogram
+aiosqlite
+apscheduler
+transformers
+requests
+langchain-gigachat
+langchain
