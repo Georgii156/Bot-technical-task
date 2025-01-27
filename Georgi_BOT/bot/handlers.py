@@ -5,7 +5,7 @@ from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
 from bot.db_creation import get_user_name, insert_user, update_user, save_feedback, save_diary_entry
-from bot.keyboard import create_dynamic_menu
+from bot.keyboard import create_dynamic_menu, create_exercise_menu, create_completion_menu
 from bot.inline_handlers import router as inline_router
 from bot.LLM import get_response
 from bot.Fsm import UserState
@@ -91,13 +91,46 @@ async def information_handler(message: Message):
 async def chat_start_handler(message: Message):
     user_id = message.from_user.id
     await update_user(user_id, {"chat_enabled": True})
-    await message.answer("✅ Чат включен!", reply_markup=create_dynamic_menu(True))
+    await message.answer("✅ Чат включен! Выберите тип упражнения:", reply_markup=create_exercise_menu())
+
+@router.message(F.text == "Когнитивное упражнение")
+@router.message(F.text == "Физическое упражнение")
+async def exercise_selected_handler(message: Message):
+    user_message = message.text
+    exercise_type = "cognitive" if user_message == "Когнитивное упражнение" else "physical"
+    
+    model_response = get_response(user_message, exercise_type)
+    await message.answer(model_response)
+
+    await message.answer("Вы выбрали упражнение. Выполнили его?", reply_markup=create_completion_menu())
+
+
+@router.message(F.text == "Выполнил")
+async def completed_exercise_handler(message: Message):
+    user_id = message.from_user.id
+    user = await get_user_name(user_id)
+    chat_enabled = user[1] if user else False
+    await message.answer("Отлично! Не забудьте внести выполненные упражнения в дневник.", reply_markup=create_dynamic_menu(chat_enabled))
+
+@router.message(F.text == "Не выполнил")
+async def not_completed_exercise_handler(message: Message):
+    user_id = message.from_user.id
+    user = await get_user_name(user_id)
+    chat_enabled = user[1] if user else False
+    await message.answer("Постарайтесь выполнять предложенные экспертом упражнения для лучшего результата.", reply_markup=create_dynamic_menu(chat_enabled))
 
 @router.message(F.text == "Выключить чат")
 async def chat_end_handler(message: Message):
     user_id = message.from_user.id
     await update_user(user_id, {"chat_enabled": False})
     await message.answer("❌ Чат выключен, буду ждать нового диалога!", reply_markup=create_dynamic_menu(False))
+
+@router.message(F.text == "Назад")
+async def back_to_main_menu_handler(message: Message):
+    user_id = message.from_user.id
+    user = await get_user_name(user_id)
+    chat_enabled = user[1] if user else False
+    await message.answer("🔙 Возврат в главное меню:", reply_markup=create_dynamic_menu(chat_enabled))
 
 @router.message(F.text == "Опции с дневником")
 async def show_options_handler(message: Message):
@@ -114,7 +147,14 @@ async def conversation_handler(message: Message, state: FSMContext):
 
     if user and user[1]:
         user_message = message.text
-        model_response = get_response(user_message)
+        if await state.get_state() == UserState.waiting_for_cognitive_exercise.state:
+            exercise_type = "cognitive"
+        elif await state.get_state() == UserState.waiting_for_physical_exercise.state:
+            exercise_type = "physical"
+        else:
+            exercise_type = "cognitive"
+
+        model_response = get_response(user_message, exercise_type)
         await message.answer(model_response)
 
     elif await state.get_state() == UserState.waiting_for_physical_exercise.state:

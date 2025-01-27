@@ -16,7 +16,17 @@ messages = [
     )
 ]
 
-def get_response(user_message: str) -> str:
+def get_response(user_message: str, exercise_type: str) -> str:
+    messages.clear()
+    if exercise_type == "cognitive":
+        messages.append(SystemMessage(
+            content="Вы — эксперт по когнитивным упражнениям. Ваша задача — рекомендовать упражнения, которые помогают пользователю стимулировать нейропластичность."
+        ))
+    elif exercise_type == "physical":
+        messages.append(SystemMessage(
+            content="Вы — эксперт по физическим упражнениям. Ваша задача — рекомендовать упражнения, которые помогают пользователю стимулировать нейропластичность."
+        ))
+    
     messages.append(HumanMessage(content=user_message))
     
     res = LLM.invoke(messages)

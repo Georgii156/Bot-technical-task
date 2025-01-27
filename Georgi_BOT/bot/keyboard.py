@@ -10,3 +10,22 @@ def create_dynamic_menu(chat_enabled: bool) -> ReplyKeyboardMarkup:
         ],
         resize_keyboard=True
     )
+
+def create_exercise_menu() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="Когнитивное упражнение")],
+            [KeyboardButton(text="Физическое упражнение")],
+            [KeyboardButton(text="Назад")],
+        ],
+        resize_keyboard=True
+    )
+
+def create_completion_menu() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="Выполнил")],
+            [KeyboardButton(text="Не выполнил")],
+        ],
+        resize_keyboard=True
+    )
